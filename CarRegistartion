@@ -1,11 +1,43 @@
 
+
+/*
+Our smart contract is written for car registration. 
+It can register new or used car and checks the mileage 
+and other details like previous owner etc., when we sell 
+or transfer vehicle to other person. All the details 
+of that car is stored in the block chain and can not 
+be altered. As with every registration, mileage at the
+time of registration is maintained, mapping to the VIN
+number of the car. At the time of selling car, person
+can not alter the mileage as with every registration
+the mileage is stored. In any case, at registration if the 
+previous mileage is more then the current mileage, it means
+there is a problem and the system will throw an error message. 
+*/
+
+
 pragma solidity ^0.4.0;
+
+// initialing the contract mortal
 
 contract mortal{
 
-    address public owner;
+
+
+
+
+// variable owner of type address
+
+
+
+
+    address public owner;               
 
     function mortal(){
+
+
+// this sets the owner of the contrcat
+
 
         owner = msg.sender;
 
@@ -19,6 +51,17 @@ contract mortal{
         }
     }
 
+
+
+
+
+// this function kill the contract
+
+
+
+
+
+
     function kill() onlyOwner{
 
         suicide(owner);
@@ -26,14 +69,47 @@ contract mortal{
 }
 
 
+
+
+
+
+// inheriting the properties of the mortal contract
+// carInfo is the main contrcat which shows car registration and transfer funtionality
+
+
+
+
+
 contract CarInfo is mortal{
 
+
+
+
+// variable new_owner of type address
+
     address new_owner;    
+
+
+
+
+
+// creating the events to reflect the data saved on the block chain after contract and API executions
+// 1) event -- > car registration details
+// 2) event -- > retrieve the car details
+// 3) event -- > tranferring the new owner and mileage details
+
+
+
+
 
     event registerCar_details(string vin, string make, string model, string color, string owner, uint year, uint mileage, uint registrationDate);
     event getCarDetails_details(string vin, string make, string model, string color, string owner, uint year, uint mileage, uint registrationDate);
     event setCarDetails_details(string vin, string owner, uint mileage, uint mileageDifference, uint registrationDate);
   
+
+
+// creating structure of the carDetails which contains basic car details
+
     struct CarDetails {
         string vin;
         string make;
@@ -44,17 +120,38 @@ contract CarInfo is mortal{
         uint mileage;
         uint registrationDate;
     }
+
+
+
+// mapping keytype => valuetype
+
+
+
     mapping(string=>CarDetails) carDetails;
+
+// carInfo function is the entry point to our application, it inputs the user address and check it against the owner address
 
     function CarInfo(address _userAddress) {
      	new_owner = _userAddress;
     }
+
+
+
+// This function below is responsible to register the car if it is not initially registered
+// It takes the input of basic car details
+// registartion date automatically taken from in the UNIX format and can be convereted to any tiem format if needed
+
 
     function registerCar(string vin, string make, string model, string color, string owner, uint year, uint mileage) onlyOwner {
 
        uint registrationDate = now;
        registerCar_details(vin, make, model, color, owner, year,  mileage, registrationDate);
        
+
+
+// all the datsils of car is saved against the unique VIN of the car
+
+
         carDetails[vin] = CarDetails({
             vin: vin,
             make: make,
@@ -68,6 +165,12 @@ contract CarInfo is mortal{
 
     }
 
+
+
+// The datils of the already registered car can be fethed anytime from anywhere 
+// vin is needed to fetch the car details
+
+
     function getCarDetails(string vin) returns (uint mileage_result) {
         mileage_result = carDetails[vin].mileage;
         getCarDetails_details(
@@ -80,10 +183,31 @@ contract CarInfo is mortal{
     }
 
 
+
+// the below function setCarDetails is responsible for the transfer of the vehicle to the new owner
+// vin is needed again to transfer the vehicle to the new owner, new mileage is also inserted at the time of transfer
+
+
+
     function setCarDetails(string vin, string _newOwner, uint _mileage) returns (uint mileage_result){
+
+
+// checking if the earlier mileage is not less than the current mileage
+// if the new mileage is equal or less than the previous mileage then there is something wrong
+// the function throws an error in this case
+
+
+
         if(carDetails[vin].mileage < _mileage){
             uint oldMileage = carDetails[vin].mileage;
+
+// one can also see the differnce betwwen the previous and current mileage (between both registrations)
+
+
             uint mileageDifference = _mileage - oldMileage;
+
+
+// getting the new date again at the time of tranferring the car
 
             carDetails[vin].mileage = _mileage;
             carDetails[vin].registrationDate = now;
@@ -97,6 +221,11 @@ contract CarInfo is mortal{
             
 	 return  mileage_result;
      } else {
+
+
+// throw error in case of any error
+
+
 	throw;
     }
 
