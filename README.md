@@ -1,4 +1,4 @@
-# solidity
+# car registration-solidity
  Our smart contract is written for car registration. 
  It can register new or used car and checks the mileage 
  and other details like previous owner etc., when we sell 
